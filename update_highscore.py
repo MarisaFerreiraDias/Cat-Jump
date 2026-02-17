@@ -64,8 +64,9 @@ content = content.replace(
 )
 
 # Write the modified content
-with open('Test.py', 'w') as f:
+with open('CatJump.py', 'w') as f:
     f.write(content)
 
 print('File updated successfully with high score system!')
+
 
