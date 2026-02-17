@@ -2,7 +2,7 @@
 import re
 
 # Read the current file
-with open('Test.py', 'r') as f:
+with open('CatJump.py', 'r') as f:
     content = f.read()
 
 # Add json import
@@ -68,3 +68,4 @@ with open('Test.py', 'w') as f:
     f.write(content)
 
 print('File updated successfully with high score system!')
+
