@@ -97,6 +97,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x  # Set initial X position
         self.rect.y = y  # Set initial Y position
+        # Create a smaller collision rect at the bottom of the cat for platform detection
+        self.collision_rect = pygame.Rect(x + 15, y, 60, 25)
         self.vel_x = 0  # Horizontal velocity
         self.vel_y = 0  # Vertical velocity
         self.on_ground = True  # Track if player is touching a platform
@@ -152,30 +154,35 @@ class Player(pygame.sprite.Sprite):
         # Update position based on velocity
         self.rect.x += self.vel_x
         self.rect.y += self.vel_y
+        # Update collision rect to match visual position
+        self.collision_rect.x = self.rect.x + 15
+        self.collision_rect.y = self.rect.y + 100 # Position collision rect at bottom of cat
 
         # Assume player is not on ground (will be set to True if collision detected)
         self.on_ground = False
 
         # Check for platform collisions (only when falling down)
         if self.vel_y > 0:
-            # Find all platforms the player collides with
-            hits = pygame.sprite.spritecollide(self, platforms, False)
+            # Find all platforms the collision rect overlaps with
+            hits = [platform for platform in platforms if self.collision_rect.colliderect(platform.rect)]
             for platform in hits:
                 # Only land on platform if approaching from above
-                if self.rect.bottom <= platform.rect.bottom:
+                if self.collision_rect.bottom <= platform.rect.bottom:
                     # Check if platform is deadly - only kill if player lands on it
                     if platform.deadly:
                         # Check if player has shield upgrade or invincibility
                         if self.shield_active:
                             self.shield_active = False  # Use up the shield
-                            # Position player on top of platform anyway
-                            self.rect.bottom = platform.rect.top
+                            # Position player on top of platform
+                            self.collision_rect.bottom = platform.rect.top
+                            self.rect.y = self.collision_rect.y - 65
                             self.jump(jump_mult)
                             self.on_ground = True
                             break  # Stop processing other platforms
                         elif 'Invincibility' in self.active_upgrades:
-                            # Position player on top of platform anyway
-                            self.rect.bottom = platform.rect.top
+                            # Position player on top of platform
+                            self.collision_rect.bottom = platform.rect.top
+                            self.rect.y = self.collision_rect.y - 65
                             self.jump(jump_mult)
                             self.on_ground = True
                             break  # Stop processing other platforms
@@ -183,7 +190,8 @@ class Player(pygame.sprite.Sprite):
                             return True  # Deadly platform - game over
                     else:
                         # Position player on top of platform
-                        self.rect.bottom = platform.rect.top
+                        self.collision_rect.bottom = platform.rect.top
+                        self.rect.y = self.collision_rect.y - 65
                         # Apply upward jump velocity with difficulty modifier
                         self.jump(jump_mult)
                         self.on_ground = True
@@ -194,8 +202,10 @@ class Player(pygame.sprite.Sprite):
         # Keep player within horizontal screen bounds (can fall off top/bottom)
         if self.rect.left < 0:
             self.rect.left = 0  # Prevent going left of screen
+            self.collision_rect.x = self.rect.x + 15
         if self.rect.right > GameSettings.SCREEN_WIDTH:
             self.rect.right = GameSettings.SCREEN_WIDTH  # Prevent going right of screen
+            self.collision_rect.x = self.rect.x + 15
         
         # Track falling time - increment if not on ground
         if not self.on_ground:
@@ -216,7 +226,7 @@ class Player(pygame.sprite.Sprite):
         if self.fall_time > 210:  # ~3.5 seconds at 60 FPS
             return True
         # Also die immediately if player falls below screen by a large margin
-        if self.rect.top > GameSettings.SCREEN_HEIGHT + 200:
+        if self.collision_rect.top > GameSettings.SCREEN_HEIGHT + 200:
             return True
         return False
     
@@ -227,7 +237,7 @@ class Player(pygame.sprite.Sprite):
 
 # Platform class - Represents static platforms the player can jump on
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=220, height=200, breakable=False, deadly=False):
+    def __init__(self, x, y, width=100, height=100, breakable=False, deadly=False):
         """Create a platform rectangle at position (x, y) with given dimensions"""
         super().__init__()
         self.breakable = breakable  # Flag for breakable platforms
@@ -242,7 +252,12 @@ class Platform(pygame.sprite.Sprite):
         
         # Load and scale the platform image
         self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (width, height))
+        zoom_factor = 2  # Change this value to control zoom
+
+        zoomed_width = int(width * zoom_factor)
+        zoomed_height = int(height * zoom_factor)
+
+        self.image = pygame.transform.scale(self.image, (zoomed_width, zoomed_height))
         
         # Tint deadly platforms red
         if deadly:
@@ -602,7 +617,7 @@ def main():
             # Collect items to remove first to avoid modifying list during iteration
             platforms_to_remove = []
             for platform in platforms:
-                if platform.rect.top > camera_y + GameSettings.SCREEN_HEIGHT + 100:
+                if platform.rect.top > camera_y + GameSettings.SCREEN_HEIGHT + 200:
                     platforms_to_remove.append(platform)
                 elif platform.will_break:  # Remove platforms marked to break
                     platforms_to_remove.append(platform)
@@ -639,7 +654,11 @@ def main():
             
             # Draw all platforms with camera offset
             for platform in platforms:
-                screen.blit(platform.image, (platform.x, platform.y - camera_y))
+                img_rect = platform.image.get_rect()
+                img_rect.centerx = platform.rect.centerx
+                img_rect.top = platform.rect.top - camera_y
+                screen.blit(platform.image, img_rect)
+
             
             # Draw all orbs with camera offset
             for orb in orbs:
@@ -759,4 +778,3 @@ def main():
 # Entry point - run the game
 if __name__ == "__main__":
     main()
-
