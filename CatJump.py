@@ -297,8 +297,8 @@ class Orb(pygame.sprite.Sprite):
         pygame.draw.circle(self.image, (255, 255, 255), (self.size, self.size), self.size, 2)
         
         self.rect = self.image.get_rect()
-        self.rect.x = x + 100  # Center on platform
-        self.rect.y = y - 50  # Float above platform
+        self.rect.x = x + 40  # Center on platform
+        self.rect.y = y - 10  # Float above platform
     
     def draw(self, surface, camera_y):
         """Draw the orb with camera offset"""
