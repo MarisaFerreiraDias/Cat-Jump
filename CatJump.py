@@ -32,8 +32,8 @@ class GameSettings:
     }
     
     # Player settings
-    PLAYER_WIDTH = 90
-    PLAYER_HEIGHT = 90
+    PLAYER_WIDTH = 120
+    PLAYER_HEIGHT = 160
     PLAYER_SPEED = 7
     GRAVITY = 0.4
     PLAYER_JUMP = -19
@@ -98,7 +98,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = x  # Set initial X position
         self.rect.y = y  # Set initial Y position
         # Create a smaller collision rect at the bottom of the cat for platform detection
-        self.collision_rect = pygame.Rect(x + 15, y, 60, 25)
+        self.collision_rect = pygame.Rect(x + 35, y, 50, 25)
         self.vel_x = 0  # Horizontal velocity
         self.vel_y = 0  # Vertical velocity
         self.on_ground = True  # Track if player is touching a platform
@@ -252,7 +252,7 @@ class Platform(pygame.sprite.Sprite):
         
         # Load and scale the platform image
         self.image = pygame.image.load(image_path).convert_alpha()
-        zoom_factor = 2  # Change this value to control zoom
+        zoom_factor = 2.5  # Change this value to control zoom
 
         zoomed_width = int(width * zoom_factor)
         zoomed_height = int(height * zoom_factor)
@@ -496,13 +496,13 @@ def main():
         orbs = pygame.sprite.Group()
         
         # Create the ground platform at bottom of screen
-        ground = Platform(0, GameSettings.SCREEN_HEIGHT - 100, GameSettings.SCREEN_WIDTH, 300)
+        ground = Platform(0, GameSettings.SCREEN_HEIGHT + 20, GameSettings.SCREEN_WIDTH, 300)
         platforms.add(ground)
 
         # Generate initial random platforms that form a reachable path upward
-        num_platforms = 13  # Initial number of platforms to generate
+        num_platforms = 7  # Initial number of platforms to generate
         platform_height = GameSettings.SCREEN_HEIGHT - 200  # Starting height for first platform
-        min_gap = 60  # Minimum vertical distance between platforms (pixels)
+        min_gap = 40  # Minimum vertical distance between platforms (pixels)
         max_gap = 100  # Maximum vertical distance between platforms (pixels)
         min_horizontal_gap = 200  # Minimum horizontal distance between platforms
         
