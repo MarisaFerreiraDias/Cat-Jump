@@ -33,7 +33,7 @@ class GameSettings:
     
     # Player settings
     PLAYER_WIDTH = 120
-    PLAYER_HEIGHT = 160
+    PLAYER_HEIGHT = 140
     PLAYER_SPEED = 7
     GRAVITY = 0.4
     PLAYER_JUMP = -19
